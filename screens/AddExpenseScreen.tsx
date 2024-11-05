@@ -3,14 +3,14 @@ import { StyleSheet, Text, View } from "react-native";
 
 type Props = {};
 
-const TransactionCard = (props: Props): JSX.Element => {
+const AddExpenseScreen = (props: Props): JSX.Element => {
   return (
     <View>
-      <Text>TransactionCard</Text>
+      <Text>AddExpenseScreen</Text>
     </View>
   );
 };
 
-export default TransactionCard;
+export default AddExpenseScreen;
 
 const styles = StyleSheet.create({});

@@ -8,10 +8,13 @@ type Props = NativeStackHeaderProps & {
   // Extra Types ...
 };
 
-const Header = ({ navigation, route }: Props) => {
+const Header = ({ navigation, route }: Props): JSX.Element => {
+  const addTransaction = () => {
+    navigation.navigate("AddExpenseScreen");
+  };
   return (
     <View style={styles.header}>
-      <TouchableOpacity style={styles.buttons}>
+      <TouchableOpacity style={styles.buttons} onPress={addTransaction}>
         <Text>
           <AntDesign name="plus" size={24} color="black" />
         </Text>

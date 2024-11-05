@@ -12,5 +12,5 @@ export interface ITransaction {
   amount: number;
   date: string;
   description: string;
-  category: ICategory;
+  categoryId: ICategory["id"];
 }
