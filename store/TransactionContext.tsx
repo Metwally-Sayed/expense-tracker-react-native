@@ -1,15 +1,17 @@
-import { createContext, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
+import { getData } from "../helpers";
 import { ICategory, ITransaction } from "../types";
 
 type TransactionContextType = {
   transactions: ITransaction[] | undefined;
-  categories: ICategory[] | undefined;
+  categories: ICategory[];
   addTransaction: (transaction: ITransaction) => void;
   updateTransaction: (transaction: ITransaction) => void;
   deleteTransaction: (id: ITransaction["id"]) => void;
   sortTransactions: () => void;
   filterTransactionsbyCategory: (categoryId: ICategory["id"]) => void;
   calculateCategoryTotalsTransactions: () => void;
+  getCategoriesByType: (type: "income" | "expense") => ICategory[];
   addCategory: (category: ICategory) => void;
   updateCategory: (category: ICategory) => void;
   deleteCategory: (id: ICategory["id"]) => void;
@@ -22,13 +24,26 @@ const TransactionProvider = ({ children }: { children: React.ReactNode }) => {
     ITransaction[] | undefined
   >();
 
-  const [categories, setCategories] = useState<ICategory[] | undefined>();
+  const [categories, setCategories] = useState<ICategory[]>([]);
+
+  // Get categories from AsyncStorage for the first time
+
+  useEffect(() => {
+    const getCategories = async () => {
+      try {
+        const data = await getData("categories");
+        setCategories(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    getCategories();
+  }, []);
 
   // Add transaction
   const addTransaction = (transaction: ITransaction) => {
-    setTransactions((prev) => {
-      return [...prev!, transaction];
-    });
+    setTransactions((prev) => [...(prev || []), transaction]);
   };
 
   // Update transaction
@@ -65,7 +80,7 @@ const TransactionProvider = ({ children }: { children: React.ReactNode }) => {
   const calculateCategoryTotalsTransactions = () => {
     // Implementation for hash table based on category id
     //Type complexity is O(1)
-    const totals: { [categoryId: number]: number } = {};
+    const totals: { [categoryId: string]: number } = {};
 
     transactions?.forEach((transaction) => {
       const categoryId = transaction.categoryId;
@@ -76,9 +91,18 @@ const TransactionProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Add category
   const addCategory = (category: ICategory) => {
+    console.log("adding category from context", category);
     setCategories((prev) => {
-      return [...prev!, category];
+      return [...(prev || []), category];
     });
+  };
+
+  // Get categories by type
+  const getCategoriesByType = (type: "income" | "expense") => {
+    const data = categories.filter((category) => category.type === type);
+    console.log(data, "getCategoriesByType");
+
+    return data;
   };
 
   // Update category
@@ -107,6 +131,7 @@ const TransactionProvider = ({ children }: { children: React.ReactNode }) => {
     filterTransactionsbyCategory,
     calculateCategoryTotalsTransactions,
     // Category Actions
+    getCategoriesByType,
     addCategory,
     updateCategory,
     deleteCategory,

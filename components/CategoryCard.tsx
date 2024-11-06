@@ -1,23 +1,21 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-type Props = {};
-
-const TransactionCard = (props: Props): JSX.Element => {
-  return (
-    <View style={styles.container}>
-      <Text>TransactionCard</Text>
-    </View>
-  );
+type Props = {
+  text?: string;
 };
 
-export default TransactionCard;
+const CategoryCard = ({ text }: Props) => {
+  return <View style={styles.container}>{text && <Text>{text}</Text>}</View>;
+};
+
+export default CategoryCard;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 15,
-    borderRadius: 15,
     backgroundColor: "white",
+    padding: 10,
+    borderRadius: 15,
     elevation: 3,
     shadowColor: "black",
     shadowOffset: { width: 0, height: 3 },

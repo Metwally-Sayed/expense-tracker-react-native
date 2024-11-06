@@ -1,14 +1,11 @@
 export interface ICategory {
-  id: number;
+  id: string;
   name: string;
-  icon: string;
-  color: string;
-  totalTransactions: number;
-  type: "EXPENSE" | "INCOME";
+  type: "expense" | "income";
 }
 
 export interface ITransaction {
-  id: number;
+  id: string;
   amount: number;
   date: string;
   description: string;
