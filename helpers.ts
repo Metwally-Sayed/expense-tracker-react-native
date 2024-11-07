@@ -38,6 +38,17 @@ export const getData = async (key: string): Promise<any[]> => {
     return jsonValue != null ? JSON.parse(jsonValue) : [];
   } catch (e) {
     console.log("Error retrieving data:", e);
-    return []; // Ensure an array is returned in case of error
+    return [];
+  }
+};
+
+export const deleteData = async (key: string, id: string) => {
+  try {
+    const data = await getData(key);
+    const updatedData = data.filter((item: any) => item.id !== id);
+    await AsyncStorage.setItem(key, JSON.stringify(updatedData));
+    console.log("Data successfully deleted from AsyncStorage");
+  } catch (e) {
+    console.log("Error deleting data:", e);
   }
 };

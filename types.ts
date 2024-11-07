@@ -7,7 +7,7 @@ export interface ICategory {
 export interface ITransaction {
   id: string;
   amount: number;
-  date: string;
+  date: number;
   description: string;
   categoryId: ICategory["id"];
 }

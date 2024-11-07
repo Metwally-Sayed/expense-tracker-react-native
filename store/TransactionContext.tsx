@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useState } from "react";
-import { getData } from "../helpers";
+import { Alert } from "react-native";
+import { deleteData, getData, storeData } from "../helpers";
 import { ICategory, ITransaction } from "../types";
 
 type TransactionContextType = {
@@ -25,50 +26,73 @@ const TransactionProvider = ({ children }: { children: React.ReactNode }) => {
   >();
 
   const [categories, setCategories] = useState<ICategory[]>([]);
+  const [isAscending, setIsAscending] = useState(true); // Track sort order
 
   // Get categories from AsyncStorage for the first time
-
   useEffect(() => {
-    const getCategories = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getData("categories");
-        setCategories(data);
+        const loadedCategories = (await getData("categories")) || [];
+        const loadedTransactions = await getData("transaction");
+        console.log(loadedTransactions);
+        setCategories(loadedCategories);
+        setTransactions(loadedTransactions);
       } catch (error) {
-        console.log(error);
+        Alert.alert("Data Load Error", "Failed to load data.");
       }
     };
-
-    getCategories();
+    fetchData();
   }, []);
 
   // Add transaction
-  const addTransaction = (transaction: ITransaction) => {
-    setTransactions((prev) => [...(prev || []), transaction]);
+  const addTransaction = async (transaction: ITransaction) => {
+    try {
+      await storeData(transaction, "transaction");
+      console.log(
+        "addinggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
+      );
+
+      setTransactions((prev) => [...(prev || []), transaction]);
+    } catch (error) {
+      Alert.alert("Add Error", "Could not add transaction.");
+    }
   };
 
   // Update transaction
   const updateTransaction = (transaction: ITransaction) => {
-    setTransactions((prev) => {
-      return prev?.map((t) => (t.id === transaction.id ? transaction : t));
-    });
+    try {
+      setTransactions((prev) => {
+        return prev?.map((t) => (t.id === transaction.id ? transaction : t));
+      });
+    } catch (error) {
+      Alert.alert("Update Error", "Could not update transaction.");
+    }
   };
 
   // Delete transaction
-  const deleteTransaction = (id: ITransaction["id"]) => {
-    setTransactions((prev) => {
-      return prev?.filter((t) => t.id !== id);
-    });
+  const deleteTransaction = async (id: ITransaction["id"]) => {
+    try {
+      await deleteData("transaction", id);
+      setTransactions((prev) => {
+        return prev?.filter((t) => t.id !== id);
+      });
+    } catch (error) {
+      Alert.alert("Delete Error", "Could not delete transaction.");
+    }
   };
 
-  // Sort transactions by date
+  // Toggle sort order and sort transactions
   const sortTransactions = () => {
+    setIsAscending((prev) => !prev); // Toggle sort order state
     setTransactions((prev) => {
-      return [...prev!].sort((a, b) => {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (!prev) return [];
+      return [...prev].sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return isAscending ? dateA - dateB : dateB - dateA; // Sort based on current order
       });
     });
   };
-
   // Filter transactions by category
   const filterTransactionsbyCategory = (categoryId: ICategory["id"]) => {
     setTransactions((prev) => {
@@ -91,7 +115,6 @@ const TransactionProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Add category
   const addCategory = (category: ICategory) => {
-    console.log("adding category from context", category);
     setCategories((prev) => {
       return [...(prev || []), category];
     });
@@ -100,8 +123,6 @@ const TransactionProvider = ({ children }: { children: React.ReactNode }) => {
   // Get categories by type
   const getCategoriesByType = (type: "income" | "expense") => {
     const data = categories.filter((category) => category.type === type);
-    console.log(data, "getCategoriesByType");
-
     return data;
   };
 
@@ -113,10 +134,15 @@ const TransactionProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Delete category
-  const deleteCategory = (id: ICategory["id"]) => {
-    setCategories((prev) => {
-      return prev?.filter((c) => c.id !== id);
-    });
+  const deleteCategory = async (id: ICategory["id"]) => {
+    try {
+      await deleteData("categories", id);
+      setCategories((prev) => {
+        return prev?.filter((c) => c.id !== id);
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const value = {

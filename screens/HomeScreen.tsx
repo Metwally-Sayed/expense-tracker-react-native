@@ -1,16 +1,16 @@
-import { useContext } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import React, { useContext } from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import TransactionList from "../components/TransactionList";
 import { TransactionContext } from "../store/TransactionContext";
 
-type Props = {};
-
-const HomeScreen = (props: Props): JSX.Element => {
+const HomeScreen = (): JSX.Element => {
   const { transactions, categories, updateTransaction, deleteTransaction } =
     useContext(TransactionContext);
+
   return (
-    <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       {transactions ? (
         <TransactionList
           transactions={transactions}
@@ -19,9 +19,12 @@ const HomeScreen = (props: Props): JSX.Element => {
           deleteTransaction={deleteTransaction}
         />
       ) : (
-        <ActivityIndicator size="small" color="gray" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="gray" />
+          <Text style={styles.loadingText}>Loading transactions...</Text>
+        </View>
       )}
-    </View>
+    </GestureHandlerRootView>
   );
 };
 
@@ -30,10 +33,23 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
     paddingHorizontal: 10,
     paddingVertical: 10,
-    height: "100%",
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "gray",
+  },
+  bottomSheetContent: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
   },
 });

@@ -1,29 +1,44 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
 import React, { useState } from "react";
-
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { generateRandomId, storeData } from "../helpers";
 import { ICategory } from "../types";
 
 type Props = {
   addCategory: (category: ICategory) => void;
-  selectedCategory: ICategory["type"];
+  selectedCategoryType: ICategory["type"];
 };
 
 const AddCategoryInput = ({
   addCategory,
-  selectedCategory,
+  selectedCategoryType,
 }: Props): JSX.Element => {
-  const [isAddingCategory, setIsAddingCategory] = useState<boolean>(false);
-  const [categoryName, setCategoryName] = useState<string>("");
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [categoryName, setCategoryName] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const addingCategoryHandler = async () => {
-    const categoryId: string = generateRandomId();
+    if (!categoryName.trim()) {
+      Alert.alert("Invalid Input", "Category name cannot be empty.");
+      return;
+    }
+
+    const categoryId = generateRandomId();
+    setLoading(true);
+
     try {
       await storeData(
         {
           id: categoryId,
           name: categoryName,
-          type: selectedCategory,
+          type: selectedCategoryType,
         },
         "categories"
       );
@@ -31,28 +46,34 @@ const AddCategoryInput = ({
       addCategory({
         id: categoryId,
         name: categoryName,
-        type: selectedCategory,
+        type: selectedCategoryType,
       });
 
-      setIsAddingCategory(false);
       setCategoryName("");
+      setIsAddingCategory(false);
     } catch (error) {
-      console.log(error);
+      Alert.alert("Error", "Failed to add category. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <View style={styles.container}>
       {!isAddingCategory ? (
-        <TouchableOpacity onPress={() => setIsAddingCategory(true)}>
-          <AntDesign name="plus" size={15} color="black" />
+        <TouchableOpacity
+          onPress={() => setIsAddingCategory(true)}
+          accessibilityLabel="Add category"
+        >
+          <AntDesign name="plus" size={20} color="black" />
         </TouchableOpacity>
       ) : (
-        <View style={styles.container}>
+        <View style={styles.inputContainer}>
           <TextInput
-            onChangeText={(text) => setCategoryName(text)}
+            onChangeText={setCategoryName}
             value={categoryName}
             autoCorrect={false}
-            placeholder="Press here to add a category"
+            placeholder="Enter Category"
             placeholderTextColor="gray"
             style={styles.textInput}
             maxLength={20}
@@ -60,12 +81,16 @@ const AddCategoryInput = ({
             returnKeyType="done"
             onSubmitEditing={addingCategoryHandler}
           />
-          <TouchableOpacity
-            onPress={() => setIsAddingCategory((prev) => !prev)}
-            // style={styles.button}
-          >
-            <AntDesign name="close" size={15} color="black" />
-          </TouchableOpacity>
+          {loading ? (
+            <ActivityIndicator size="small" color="gray" />
+          ) : (
+            <TouchableOpacity
+              onPress={() => setIsAddingCategory(false)}
+              accessibilityLabel="Close input"
+            >
+              <AntDesign name="close" size={20} color="black" />
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>
@@ -82,6 +107,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   textInput: {
     fontSize: 14,
     backgroundColor: "transparent",
@@ -89,5 +118,7 @@ const styles = StyleSheet.create({
     shadowColor: "black",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
+    shadowRadius: 5,
+    paddingHorizontal: 8,
   },
 });
