@@ -1,13 +1,21 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 type Props = {
   addTransactionHandler: () => void;
 };
 
-const AddTransactionHeader = ({ addTransactionHandler }: Props): JSX.Element => {
+const AddTransactionHeader = ({
+  addTransactionHandler,
+}: Props): JSX.Element => {
   const navigation = useNavigation();
   return (
     <View style={styles.header}>
@@ -37,13 +45,14 @@ export default AddTransactionHeader;
 
 const styles = StyleSheet.create({
   header: {
+    backgroundColor: "white",
     flexDirection: "row",
     justifyContent: "space-between",
+    alignContent: "center",
     alignItems: "flex-end",
-    height: 60,
+    height: Platform.OS === "ios" ? 50 : 90,
     paddingHorizontal: 10,
     width: "100%",
-    paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#f2f2f2",
   },

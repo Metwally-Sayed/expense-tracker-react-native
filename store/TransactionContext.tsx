@@ -4,7 +4,7 @@ import { deleteData, getData, storeData } from "../helpers";
 import { ICategory, ITransaction } from "../types";
 
 type TransactionContextType = {
-  transactions: ITransaction[] | undefined;
+  transactions: ITransaction[];
   categories: ICategory[];
   addTransaction: (transaction: ITransaction) => void;
   updateTransaction: (transaction: ITransaction) => void;
@@ -16,18 +16,19 @@ type TransactionContextType = {
   addCategory: (category: ICategory) => void;
   updateCategory: (category: ICategory) => void;
   deleteCategory: (id: ICategory["id"]) => void;
+  calculateExpenses: () => number;
+  calculateIncomes: () => number;
 };
 
 export const TransactionContext = createContext({} as TransactionContextType);
 
 const TransactionProvider = ({ children }: { children: React.ReactNode }) => {
-  const [transactions, setTransactions] = useState<
-    ITransaction[] | undefined
-  >();
+  const [transactions, setTransactions] = useState<ITransaction[]>([]);
 
   const [categories, setCategories] = useState<ICategory[]>([]);
-  const [isAscending, setIsAscending] = useState(true); // Track sort order
-
+  const [isAscending, setIsAscending] = useState(true);
+  const [filteredTransactions, setFilteredTransactions] =
+    useState<ITransaction[]>(transactions);
   // Get categories from AsyncStorage for the first time
   useEffect(() => {
     const fetchData = async () => {
@@ -48,10 +49,6 @@ const TransactionProvider = ({ children }: { children: React.ReactNode }) => {
   const addTransaction = async (transaction: ITransaction) => {
     try {
       await storeData(transaction, "transaction");
-      console.log(
-        "addinggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
-      );
-
       setTransactions((prev) => [...(prev || []), transaction]);
     } catch (error) {
       Alert.alert("Add Error", "Could not add transaction.");
@@ -83,34 +80,66 @@ const TransactionProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Toggle sort order and sort transactions
   const sortTransactions = () => {
-    setIsAscending((prev) => !prev); // Toggle sort order state
+    setIsAscending((prev) => !prev);
     setTransactions((prev) => {
       if (!prev) return [];
       return [...prev].sort((a, b) => {
         const dateA = new Date(a.date).getTime();
         const dateB = new Date(b.date).getTime();
-        return isAscending ? dateA - dateB : dateB - dateA; // Sort based on current order
+        return isAscending ? dateA - dateB : dateB - dateA;
       });
     });
   };
   // Filter transactions by category
   const filterTransactionsbyCategory = (categoryId: ICategory["id"]) => {
-    setTransactions((prev) => {
-      return [...prev!].filter((t) => t.categoryId === categoryId);
-    });
+    const filtered = transactions.filter((t) => t.categoryId === categoryId);
+    setFilteredTransactions(filtered);
   };
 
   // Calculate the number of transactions for each category
   const calculateCategoryTotalsTransactions = () => {
-    // Implementation for hash table based on category id
-    //Type complexity is O(1)
+    if (!transactions) return {}; // Early return if no transactions
+
     const totals: { [categoryId: string]: number } = {};
 
-    transactions?.forEach((transaction) => {
-      const categoryId = transaction.categoryId;
-      totals[categoryId] = (totals[categoryId] || 0) + transaction.amount;
+    transactions.forEach((transaction) => {
+      const { categoryId, amount } = transaction;
+      totals[categoryId] = (totals[categoryId] || 0) + amount;
     });
+
     return totals;
+  };
+
+  // Calculate the total expenses
+  const calculateExpenses = (): number => {
+    const totals = calculateCategoryTotalsTransactions();
+    if (Object.keys(totals).length === 0) return 0;
+
+    const expenseCategories = categories.filter(
+      (category) => category.type === "expense"
+    );
+    const expenseTotals = expenseCategories.reduce((acc, category) => {
+      const categoryTotal = totals[category.id] || 0;
+      return acc + categoryTotal;
+    }, 0);
+
+    return expenseTotals;
+  };
+
+  // Calculate the total incomes
+  const calculateIncomes = (): number => {
+    const totals = calculateCategoryTotalsTransactions();
+    if (Object.keys(totals).length === 0) return 0;
+
+    const incomeCategories = categories.filter(
+      (category) => category.type === "income"
+    );
+    const incomeTotals = incomeCategories.reduce((acc, category) => {
+      const categoryTotal = totals[category.id] || 0;
+      return acc + categoryTotal;
+    }, 0);
+
+    return incomeTotals;
   };
 
   // Add category
@@ -161,6 +190,9 @@ const TransactionProvider = ({ children }: { children: React.ReactNode }) => {
     addCategory,
     updateCategory,
     deleteCategory,
+    // Calculation Actions
+    calculateExpenses,
+    calculateIncomes,
   };
 
   return (

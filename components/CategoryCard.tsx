@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { GlobalStyles } from "../constans/styles";
 import { ICategory } from "../types";
 
 type Props = {
@@ -11,7 +12,9 @@ const CategoryCard = ({ selectedCategory, category }: Props) => {
   return (
     <View
       style={
-        selectedCategory === category.id ? styles.selectedCard : styles.card
+        selectedCategory === category.id
+          ? GlobalStyles.selectedCard
+          : GlobalStyles.card
       }
     >
       <Text
@@ -28,26 +31,6 @@ const CategoryCard = ({ selectedCategory, category }: Props) => {
 export default CategoryCard;
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "white",
-    padding: 10,
-    borderRadius: 15,
-    elevation: 3,
-    shadowColor: "black",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-  },
-  selectedCard: {
-    backgroundColor: "black",
-    padding: 10,
-    borderRadius: 15,
-    elevation: 3,
-    shadowColor: "black",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-  },
   text: {
     color: "black",
   },

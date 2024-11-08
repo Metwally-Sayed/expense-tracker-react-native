@@ -1,5 +1,6 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { TouchableOpacity } from "@gorhom/bottom-sheet";
+import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import { AutoSizeText, ResizeTextMode } from "react-native-auto-size-text";
@@ -18,6 +19,7 @@ const TransactionCard = ({
   deleteTransaction,
   categories,
 }: Props): JSX.Element => {
+  const navigation = useNavigation();
   const categoryData = useMemo(
     () =>
       categories?.find((category) => category.id === transaction.categoryId),
@@ -61,6 +63,7 @@ const TransactionCard = ({
       ]}
     >
       <TouchableOpacity
+        onLongPress={deleteTransaction.bind(null, transaction.id)}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={0.7}
@@ -76,7 +79,7 @@ const TransactionCard = ({
               numberOfLines={1}
               style={styles.amount}
             >
-              ${transaction.amount}
+              ${transaction.amount.toFixed(2)}
             </AutoSizeText>
           </View>
           <View style={styles.detailsContainer}>

@@ -1,22 +1,83 @@
-import React, { useContext } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { FlatList, GestureHandlerRootView } from "react-native-gesture-handler";
+import CategoryCard from "../components/CategoryCard";
 import TransactionList from "../components/TransactionList";
+import TransactionsSummary from "../components/TransactionsSummary";
 import { TransactionContext } from "../store/TransactionContext";
+import { ICategory, ITransaction } from "../types";
 
 const HomeScreen = (): JSX.Element => {
   const { transactions, categories, updateTransaction, deleteTransaction } =
     useContext(TransactionContext);
+  const [filteredTransactions, setFilteredTransactions] =
+    useState<ITransaction[]>(transactions);
+  const [selectedCategory, setSelectedCategory] = useState<ICategory["id"]>();
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleSelectedCategory = (id: ICategory["id"] | undefined) => {
+    if (id === selectedCategory) {
+      setFilteredTransactions(transactions);
+      setSelectedCategory(undefined);
+      return;
+    }
+    setSelectedCategory(id);
+    const filtered = transactions.filter((t) => t.categoryId === id);
+    setFilteredTransactions(filtered);
+  };
+
+  useEffect(() => {
+    if (transactions && transactions.length > 0) {
+      setIsLoading(false);
+      setFilteredTransactions(transactions);
+    } else {
+      setIsLoading(true);
+    }
+  }, [transactions, filteredTransactions]);
+
+  const deleteTransactionsHandler = async (id: ITransaction["id"]) => {
+    await deleteTransaction(id);
+    setFilteredTransactions((prev) => {
+      return prev?.filter((t) => t.id !== id);
+    });
+  };
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      {transactions ? (
+      <TransactionsSummary />
+      <View style={{ marginVertical: 10 }}>
+        <FlatList
+          horizontal
+          data={categories}
+          renderItem={({ item, index }) => (
+            <>
+              <TouchableOpacity
+                onPress={() => handleSelectedCategory(item.id)}
+                style={{ marginRight: 10, marginBottom: 4 }}
+              >
+                <CategoryCard
+                  category={item as ICategory}
+                  selectedCategory={selectedCategory}
+                />
+              </TouchableOpacity>
+            </>
+          )}
+        />
+      </View>
+
+      {filteredTransactions ? (
         <TransactionList
-          transactions={transactions}
+          transactions={filteredTransactions}
           categories={categories}
           updateTransaction={updateTransaction}
-          deleteTransaction={deleteTransaction}
+          deleteTransaction={deleteTransactionsHandler}
         />
       ) : (
         <View style={styles.loadingContainer}>

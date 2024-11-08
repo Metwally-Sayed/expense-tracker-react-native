@@ -113,12 +113,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     fontSize: 14,
-    backgroundColor: "transparent",
-    elevation: 3,
-    shadowColor: "black",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
+    color: "black",
     paddingHorizontal: 8,
   },
 });
